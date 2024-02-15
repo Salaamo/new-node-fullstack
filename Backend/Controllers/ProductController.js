@@ -9,7 +9,9 @@ const createProduct = async(req,res)=>{
        res.status(400).send({message: "All Fields are required"})
     }else{
         try {
-            const imageUpload = await cloudinary.uploader.upload(ProductImage, {folder : "productImages"})
+            const imageUpload = await cloudinary.uploader.upload(ProductImage, 
+                {folder : "productImages",
+            });
 
             const productLink = imageUpload.secure_url
                 console.log("product link : ", productLink );
@@ -18,6 +20,12 @@ const createProduct = async(req,res)=>{
                 ProductPrice,
                 ProductDescription,
                 ProductCategory,
+                ProductImage : productLink
+            }
+            if (createProduct) {
+                res.status(200).send({message: "Product created successfully", status : true})
+            }else{
+                res.status(400).send({message: "Error uploading Product"})
             }
         } catch (error) {
             res.status(400).send({message: "Server error", error})
