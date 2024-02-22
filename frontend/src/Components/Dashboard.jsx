@@ -1,12 +1,21 @@
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import axios from "axios";
 
 const Dashboard = () => {
+    const [ProductName, setProductName] = useState("");
+    const [ProductPrice, setProductPrice] = useState("");
+    const [ProductImage, setProductImage] = useState("");
+    const [ProductDescription, setProductDescription] = useState("");
+    const [ProductCategory, setProductCategory] = useState("");
+    const [products, setProducts] = useState([]);
     const token = localStorage.getItem("token") || ""
     useEffect(() => {
         if (token === "") {
             alert("You are not authorized to view this page")
             navigate("/sign-in")
+        } else {
+            fetchProducts()
         }
     }, [])
 
@@ -19,10 +28,94 @@ const Dashboard = () => {
             navigate("/")
         }
     }
+    const fetchProducts = async () => {
+        try {
+            const response = await axios.get("http://localhost:4000/Api/product/getProducts");
+            console.log("Products response:", response.data); // Log the response data
 
-    const handleEdit = ()=>{
+            if (response.data.status === "success") {
+                setProducts(response.data.products);
+            }
+        } catch (error) {
+            console.error("Error fetching products", error);
+        }
+    };
+    const handleEdit = async () => {
+        navigate("/editProfile")
 
     }
+
+    const handleImageChange = (ev) => {
+        const file = ev.target.files[0];
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setProductImage(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleSubmit = async (ev) => {
+        ev.preventDefault();
+
+        const ProductDetails = {
+            ProductName,
+            ProductPrice,
+            ProductImage,
+            ProductDescription,
+            ProductCategory,
+        };
+
+        console.log("ProductDetails", ProductDetails);
+
+        try {
+            const response = await axios.post("http://localhost:4000/Api/product/uploadProduct", ProductDetails, {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            console.log(response);
+
+            if (response.data.status === "success") {
+                alert(response.data.message);
+            }
+        } catch (error) {
+            console.error("Error Making post request", error);
+            alert("Error posting Product, try again later");
+        }
+    };
+    const groupProductsByCategory = () => {
+        const groupedProducts = {};
+
+        products.forEach((product) => {
+            const category = product.ProductCategory || "Uncategorized";
+            if (!groupedProducts[category]) {
+                groupedProducts[category] = [];
+            }
+            groupedProducts[category].push(product);
+        });
+
+        return groupedProducts;
+    };
+
+    const groupedProducts = groupProductsByCategory();
+    const deleteProduct = async (productId) => {
+        try {
+            // Add your delete request logic here
+            const response = await axios.delete(`http://localhost:4000/Api/product/deleteProduct/${productId}`);
+            if (response.data.status === "success") {
+                
+            }
+        } catch (error) {
+            console.error("Error fetching products", error);
+        }
+       
+    };
+
+
     return (
         <div>
             <div className="w-100 d-flex align-items-center justify-content-between my-2 px-4">
@@ -33,39 +126,49 @@ const Dashboard = () => {
                     <button onClick={handleEdit} className="btn btn-danger mx-3">Delete Account</button>
                 </div>
             </div>
-            {/* <p className='w-100 bg-primary text-white'>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Repellendus blanditiis nulla mollitia. Accusamus esse distinctio reiciendis exercitationem vero debitis quasi ut! Optio, ullam. Sed quos expedita atque saepe tempora consectetur.
-                Eaque in saepe asperiores voluptate iure necessitatibus perspiciatis consequuntur maxime repellat non. Nemo, dolore quisquam a repudiandae natus tempore nulla. Placeat impedit esse incidunt deserunt, at iure dolorum quas libero.
-                Excepturi incidunt aspernatur saepe dolores enim perspiciatis sapiente architecto, ipsum distinctio labore! Esse officia consequatur repudiandae mollitia alias. Blanditiis dicta at consectetur officia iste ipsum nemo cupiditate minus corporis dolores?
-                At nihil ab, aperiam suscipit veritatis sed quaerat molestias eius, placeat esse, nobis reiciendis dolore a nemo ex odit similique quis ipsum voluptate optio commodi reprehenderit quas est natus? Magni?
-                Qui facilis earum esse. Nulla error unde modi dolorem corporis cupiditate libero incidunt ut pariatur. Aut iste ad, praesentium quos perspiciatis quibusdam minima dignissimos fugit, recusandae voluptatem sit tenetur sed!
-                Quia doloremque eius asperiores, placeat libero beatae debitis! Cumque quaerat quis vitae dolorem ad laudantium qui autem ipsa maiores beatae temporibus incidunt, quas ut repellat reiciendis tenetur ea perspiciatis quo.
-                Veniam dolorum optio in dolor recusandae sint neque tempore, totam quo repellendus sed ea veritatis, vero cupiditate? Molestias ex dignissimos doloribus expedita sequi obcaecati, quos totam eos commodi! Rerum, adipisci.
-                Optio in architecto quas blanditiis aliquam cupiditate autem magni adipisci praesentium cum, accusantium incidunt esse consectetur consequatur enim quae delectus ipsa, excepturi id doloremque! Atque fugiat unde facilis eaque quibusdam.
-                Magni expedita et architecto minima earum, voluptatibus aliquid dolorum! Ad necessitatibus quisquam sed nostrum sit quasi perspiciatis expedita reprehenderit mollitia! Similique repudiandae, culpa laboriosam nobis mollitia rem porro illum hic?
-                Corporis esse laudantium exercitationem fuga laborum repellat provident vitae officiis voluptatibus hic facere quaerat itaque fugiat quisquam voluptatum error, adipisci assumenda ratione doloremque rerum accusamus odio ducimus! Minus, quam amet.
-                Voluptatibus consectetur totam laboriosam at exercitationem, ducimus unde quas doloremque optio fugit assumenda mollitia vitae, accusantium, autem quis ullam debitis dolorem suscipit cum? Dolor eligendi dicta repudiandae cupiditate quos ea.
-                Assumenda libero blanditiis cupiditate aspernatur pariatur natus provident corporis impedit sunt nostrum perspiciatis, eveniet earum sequi necessitatibus fugiat vitae maxime totam accusamus! Magnam officiis porro molestiae laborum eum nam voluptatem?
-                Placeat facere culpa deserunt dolorum tenetur dicta aspernatur doloribus, officia inventore qui excepturi voluptatem. Sint laborum animi dolores fugit necessitatibus quo et sit temporibus commodi ut labore, possimus totam eligendi!
-                Consequuntur corrupti quo, alias, consectetur ut expedita obcaecati sapiente, nobis cumque quasi laborum totam. Quaerat in fugiat quidem consequatur, necessitatibus a eum reprehenderit doloremque nostrum dolore mollitia accusantium molestias cupiditate.
-                Suscipit quae in harum vitae facere voluptatibus ab nihil ullam, fuga fugit, ipsum, magnam amet nisi exercitationem necessitatibus cumque omnis? Consectetur, repellat autem dolores aliquam ex architecto nostrum est! Veniam.
-                Ea in similique accusantium excepturi laborum quisquam ad. Voluptas sint, quam impedit dolore fugiat ducimus cum omnis atque fuga possimus consequuntur dolores praesentium natus nisi optio temporibus aut, nihil inventore.
-                Eveniet ipsam obcaecati incidunt asperiores corporis labore magnam cumque ea dignissimos fugiat illo minus quibusdam veniam maxime, enim reiciendis, dolorem quia iusto iure rem? Unde beatae placeat nam consequatur ut?
-                Tempora laudantium vitae magnam fugit dignissimos repudiandae quidem. Explicabo sunt sit corporis. Molestiae, quibusdam nesciunt mollitia excepturi exercitationem, pariatur voluptas tenetur alias placeat sit doloremque id velit soluta. Recusandae, ipsum?
-                Accusamus ad placeat ea? Voluptatum magni, aperiam unde cumque doloribus suscipit placeat voluptates porro animi numquam repudiandae fugiat maxime sed delectus tempora obcaecati nisi commodi excepturi dolor nemo. Doloremque, dolore.
-                Quia non quod culpa, corporis perferendis laboriosam molestias aspernatur placeat eligendi quis dicta obcaecati voluptate rerum voluptatem voluptates expedita adipisci. Ullam quos aspernatur vel culpa consequuntur at dolorum, accusamus pariatur.</p> */}
 
-<div className="">
+            <div className="">
 
-<h1 className="text-primary fs-2 text-center">Product Form</h1>
-<div className="col-10 col-md-8 col-lg-6 mx-auto">
-<form action="" method="post" className=" mx-auto shadow p-4 ml-5" style={{ width: "500px" }}>
-    <input type="file" name="image" id="" className="form-control my-2 w-full" multiple/>
-    <input type="text" name="name" placeholder='product name' className="form-control my-2 w-full"/>
-    <input type="text" name="price" placeholder='product price' className="form-control my-2 w-full"/>
-    <input type="text" name="description" placeholder='product description' className="form-control my-2 w-full"/>
-</form>
-</div>
-</div>
+                <h1 className="text-primary fs-2 text-center">Product Form</h1>
+                <div className="col-10 col-md-8 col-lg-6 mx-auto">
+                    <form action="" method="post" onSubmit={handleSubmit} className=" mx-auto shadow p-4 ml-5" style={{ width: "500px" }}>
+                        <input onChange={handleImageChange} type="file" name="ProductImage" id="" className="form-control my-2 w-full" />
+                        <input onChange={(ev) => setProductName(ev.target.value)} type="text" name="ProductName" placeholder='product name' className="form-control my-2 w-full" />
+                        <input onChange={(ev) => setProductPrice(ev.target.value)} type="text" name="ProductPrice" placeholder='product price' className="form-control my-2 w-full" />
+                        <input onChange={(ev) => setProductDescription(ev.target.value)} type="text" name="ProductDescription" placeholder='product description' className="form-control my-2 w-full" />
+                        <input onChange={(ev) => setProductCategory(ev.target.value)} type="text" name="ProductCategory" placeholder='product Category' className="form-control my-2 w-full" />
+                        <button type="submit" className="btn btn-primary">Upload Product</button>
+
+                    </form>
+                </div>
+            </div>
+            <div>
+                {/* Display the list of uploaded products */}
+                <h2>Uploaded Products</h2>
+                <ul>
+                {Object.entries(groupedProducts).map(([category, categoryProducts]) => (
+                <div key={category}>
+                    <h2>{category}</h2>
+                    <ul className="display">
+                        {categoryProducts.map((product) => (
+                            <li key={product._id} style={{ margin: "0 10px", position: "relative" }}>
+                                <img src={product.ProductImage} width="200px" alt={product.ProductName} />
+                                <div style={{ position: "absolute", top: 0, right: 0 }}>
+                                    <button className="btn btn-success" onClick={() => deleteProduct(product._id)}>Delete</button>
+                                    <button className="btn btn-danger" onClick={() => editProduct(product._id)}>Edit</button>
+                                </div>
+                                <div>
+                                    <h3>{product.ProductName}</h3>
+                                    {/* Add additional information as needed */}
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            ))}
+                </ul>
+
+            </div>
         </div>
 
     )

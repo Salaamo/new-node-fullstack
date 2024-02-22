@@ -15,13 +15,13 @@ const createProduct = async(req,res)=>{
 
             const productLink = imageUpload.secure_url
                 console.log("product link : ", productLink );
-            const createProduct = { 
+            const createProduct = await ProductModel.create({ 
                 ProductName,
                 ProductPrice,
                 ProductDescription,
                 ProductCategory,
                 ProductImage : productLink
-            }
+            })
             if (createProduct) {
                 res.status(200).send({message: "Product created successfully", status : true})
             }else{
@@ -33,8 +33,32 @@ const createProduct = async(req,res)=>{
     }
 } 
 
+const getProducts = async (req, res) => {
+    try {
+        const products = await ProductModel.find();
+        res.status(200).send({ products, status: "success" });
+    } catch (error) {
+        res.status(500).send({ message: "Server error", error });
+    }
+};
+const deleteProduct = async (req, res) => {
+    const productId = req.params.id;
+
+    try {
+        const deletedProduct = await ProductModel.findByIdAndDelete(productId);
+
+        if (deletedProduct) {
+            res.status(200).send({ message: "Product deleted successfully", status: true });
+        } else {
+            res.status(404).send({ message: "Product not found", status: false });
+        }
+    } catch (error) {
+        console.error("Error deleting product", error);
+        res.status(500).send({ message: "Server error", error });
+    }
+};
 
 
 
 
-module.exports = {createProduct}
+module.exports = {createProduct, getProducts, deleteProduct}
